@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Console</title>
+    <style>
+        :root {
+            --navy: #17253e;
+            --blue: #3973e6;
+            --blue-dark: #2859b5;
+            --background: #f3f6fb;
+            --surface: #ffffff;
+            --border: #dfe6f0;
+            --text: #1d2939;
+            --muted: #667085;
+            --success: #14804a;
+            --danger: #c62828;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background: var(--background);
+        }
+
+        .app {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+        }
+
+        .sidebar {
+            background: var(--navy);
+            color: #ffffff;
+            padding: 28px 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 38px;
+        }
+
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            background: var(--blue);
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .brand strong {
+            display: block;
+            font-size: 15px;
+        }
+
+        .brand small {
+            color: #b9c5d8;
+            font-size: 12px;
+        }
+
+        .nav-label {
+            color: #91a2bc;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin: 0 10px 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            height: 44px;
+            padding: 0 12px;
+            border-radius: 8px;
+            color: #dce5f2;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+        }
+
+        .main {
+            min-width: 0;
+            padding: 28px 36px 48px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0 0 5px;
+            font-size: 26px;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .run-button {
+            border: 0;
+            border-radius: 8px;
+            background: var(--blue);
+            color: #ffffff;
+            min-height: 42px;
+            padding: 0 18px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 5px 14px rgba(57, 115, 230, 0.22);
+        }
+
+        .run-button:hover { background: var(--blue-dark); }
+
+        .device-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--border);
+        }
+
+        .device-stat {
+            background: var(--surface);
+            padding: 16px 18px;
+        }
+
+        .device-stat span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .device-stat strong {
+            font-size: 14px;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 7px;
+            background: var(--success);
+        }
+
+        .status-dot.disconnected {
+            background: var(--danger);
+        }
+
+        .alert {
+            margin-bottom: 20px;
+            border: 1px solid #efb0b0;
+            border-radius: 8px;
+            background: #fff4f4;
+            color: var(--danger);
+            padding: 13px 16px;
+            font-size: 14px;
+        }
+
+        .empty-state {
+            border: 1px dashed #bdc7d8;
+            border-radius: 10px;
+            background: var(--surface);
+            text-align: center;
+            padding: 70px 20px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            width: 52px;
+            height: 52px;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            background: #edf3ff;
+            color: var(--blue);
+            font-size: 24px;
+        }
+
+        .empty-state h2 {
+            margin: 0 0 7px;
+            color: var(--text);
+            font-size: 17px;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .command-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .command-card {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface);
+            padding: 18px;
+            cursor: pointer;
+            text-align: left;
+            min-height: 112px;
+            transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+        }
+
+        .command-card:hover {
+            border-color: var(--blue);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(29, 41, 57, 0.08);
+        }
+
+        .command-card strong {
+            display: block;
+            color: var(--text);
+            margin-bottom: 8px;
+            font: 700 13px/1.4 Consolas, "Courier New", monospace;
+        }
+
+        .command-card span {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(16, 24, 40, 0.72);
+        }
+
+        .modal.open { display: flex; }
+
+        .modal-dialog {
+            width: min(900px, 100%);
+            max-height: 82vh;
+            overflow: hidden;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            background: #101827;
+            box-shadow: 0 24px 60px rgba(16, 24, 40, 0.28);
+        }
+
+        .modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 58px;
+            border-bottom: 1px solid #263449;
+            background: #1b2638;
+            padding: 0 18px;
+        }
+
+        .modal-head strong {
+            color: #dbe7f7;
+            font: 700 13px Consolas, "Courier New", monospace;
+        }
+
+        .modal-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-dots {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-right: 12px;
+        }
+
+        .terminal-dots span {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+        }
+
+        .terminal-dots span:nth-child(1) { background: #ff5f57; }
+        .terminal-dots span:nth-child(2) { background: #febc2e; }
+        .terminal-dots span:nth-child(3) { background: #28c840; }
+
+        .copy-button {
+            border: 0;
+            background: transparent;
+            color: #a9b7cb;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .close-button {
+            width: 34px;
+            height: 34px;
+            border: 0;
+            border-radius: 7px;
+            background: #263449;
+            color: #dbe7f7;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .terminal-body {
+            background: #101827;
+            min-height: 280px;
+            max-height: 520px;
+            overflow: auto;
+            padding: 18px 20px 22px;
+        }
+
+        .terminal-command {
+            margin: 0 0 12px;
+            color: #69d6a0;
+            font: 13px/1.55 Consolas, "Courier New", monospace;
+        }
+
+        .terminal-command .prompt {
+            color: #77a9ff;
+        }
+
+        pre {
+            margin: 0;
+            min-height: 220px;
+            overflow: auto;
+            background: #101827;
+            color: #dbe7f7;
+            padding: 0;
+            font: 13px/1.55 Consolas, "Courier New", monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        @media (max-width: 760px) {
+            .app { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .main { padding: 20px 16px 36px; }
+            .topbar { align-items: flex-start; gap: 16px; }
+            .run-button { min-width: 108px; }
+            .device-card { grid-template-columns: 1fr; }
+            .command-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">N</div>
+                <div>
+                    <strong>NetConsole</strong>
+                    <small>Automation</small>
+                </div>
+            </div>
+            <div class="nav-label">Workspace</div>
+            <a class="nav-item active" href="/">
+                <span>▦</span>
+                <span>Router Console</span>
+            </a>
+        </aside>
+
+        <main class="main">
+            <header class="topbar">
+                <div>
+                    <h1>Router Console</h1>
+                    <p class="subtitle">Cisco device diagnostics and configuration</p>
+                </div>
+                <form method="post">
+                    <button class="run-button" type="submit">Run Commands</button>
+                </form>
+            </header>
+
+            <section class="device-card" aria-label="Device details">
+                <div class="device-stat">
+                    <span>Device</span>
+                    <strong>Cisco Router</strong>
+                </div>
+                <div class="device-stat">
+                    <span>IP Address</span>
+                    <strong>192.168.10.33:32770</strong>
+                </div>
+                <div class="device-stat">
+                    <span>Status</span>
+                    <strong>
+                        <span class="status-dot"></span>
+                        {% if results %}Connected{% elif error %}Disconnected{% else %}Ready{% endif %}
+                    </strong>
+                </div>
+            </section>
+
+            {% if error %}
+            <div class="alert">{{ error }}</div>
+            {% endif %}
+
+            {% if results %}
+            <div class="command-grid">
+            {% for command, output in results.items() %}
+                <button class="command-card" type="button"
+                        data-command="{{ command }}" data-output="output-{{ loop.index }}">
+                    <strong>{{ command }}</strong>
+                    <span>Click to view output</span>
+                </button>
+                <template id="output-{{ loop.index }}">{{ output }}</template>
+            {% endfor %}
+            </div>
+
+            <div class="modal" id="output-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+                <div class="modal-dialog">
+                    <div class="modal-head">
+                        <div style="display:flex; align-items:center;">
+                            <div class="terminal-dots" aria-hidden="true">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <strong id="modal-title">Command Output</strong>
+                        </div>
+                        <div class="modal-actions">
+                            <button class="copy-button" type="button" id="modal-copy">Copy output</button>
+                            <button class="close-button" type="button" id="modal-close" aria-label="Close">&times;</button>
+                        </div>
+                    </div>
+                    <div class="terminal-body">
+                        <p class="terminal-command"><span class="prompt">Router#</span> <span id="modal-command"></span></p>
+                        <pre id="modal-output"></pre>
+                    </div>
+                </div>
+            </div>
+            {% elif not error %}
+            <section class="empty-state">
+                <div class="empty-icon">⌁</div>
+                <h2>No command output yet</h2>
+                <p>Select “Run Commands” to connect to the router and retrieve live data.</p>
+            </section>
+            {% endif %}
+        </main>
+    </div>
+
+    <script>
+        const modal = document.getElementById("output-modal");
+        const modalTitle = document.getElementById("modal-title");
+        const modalCommand = document.getElementById("modal-command");
+        const modalOutput = document.getElementById("modal-output");
+        const modalCopy = document.getElementById("modal-copy");
+
+        document.querySelectorAll(".command-card").forEach((card) => {
+            card.addEventListener("click", () => {
+                const template = document.getElementById(card.dataset.output);
+                modalTitle.textContent = card.dataset.command;
+                modalCommand.textContent = card.dataset.command;
+                modalOutput.textContent = template.content.textContent;
+                modal.classList.add("open");
+            });
+        });
+
+        document.getElementById("modal-close").addEventListener("click", () => {
+            modal.classList.remove("open");
+        });
+
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) modal.classList.remove("open");
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") modal.classList.remove("open");
+        });
+
+        modalCopy.addEventListener("click", async () => {
+            await navigator.clipboard.writeText(modalOutput.textContent);
+            modalCopy.textContent = "Copied";
+            setTimeout(() => { modalCopy.textContent = "Copy output"; }, 1500);
+        });
+    </script>
+</body>
+</html>
